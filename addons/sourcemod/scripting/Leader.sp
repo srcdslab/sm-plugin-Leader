@@ -7,7 +7,7 @@
 #include <sourcecomms>
 #include <leader>
 
-#define PLUGIN_VERSION "3.1"
+#define PLUGIN_VERSION "3.2"
 #define MAXLEADERS 64
 #pragma newdecls required
 
@@ -48,7 +48,7 @@ int g_TrailModel[MAXPLAYERS+1] = { 0, ... };
 //----------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
 	name = "Leader",
-	author = "AntiTeal + Neon + inGame",
+	author = "AntiTeal + Neon + inGame + Rushaway",
 	description = "Allows for a human to be a leader, and give them special functions with it.",
 	version = PLUGIN_VERSION,
 	url = "https://antiteal.com"
@@ -681,6 +681,10 @@ public Action Leader(int client, int args)
 			return Plugin_Handled;
 		}
 	}
+	else if(CheckCommandAccess(client, "sm_admin", ADMFLAG_GENERIC, false) && ZR_IsClientZombie(client))
+    {
+        PrintToChat(client, "[SM] This feature requires that you are a human.");
+    }
 
 	if (IsPossibleLeader(client))
 	{
