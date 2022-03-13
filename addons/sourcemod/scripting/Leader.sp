@@ -6,8 +6,9 @@
 #include <zombiereloaded>
 #include <sourcecomms>
 #include <leader>
+#include <multicolors>
 
-#define PLUGIN_VERSION "3.2"
+#define PLUGIN_VERSION "3.4"
 #define MAXLEADERS 64
 #pragma newdecls required
 
@@ -48,7 +49,7 @@ int g_TrailModel[MAXPLAYERS+1] = { 0, ... };
 //----------------------------------------------------------------------------------------------------
 public Plugin myinfo = {
 	name = "Leader",
-	author = "AntiTeal + Neon + inGame + Rushaway",
+	author = "AntiTeal + Neon + inGame + .Rushaway",
 	description = "Allows for a human to be a leader, and give them special functions with it.",
 	version = PLUGIN_VERSION,
 	url = "https://antiteal.com"
@@ -406,7 +407,7 @@ public void SetLeader(int client)
 	if(IsValidClient(leaderClient))
 	{
 		RemoveLeader(leaderClient);
-		PrintToChatAll("[SM] The current leader has been removed!");
+		CPrintToChatAll("{green}[SM] {default}The current leader has been removed !");
 	}
 
 	if(IsValidClient(client))
@@ -587,12 +588,12 @@ public Action CurrentLeader(int client, int args)
 {
 	if(IsValidClient(leaderClient))
 	{
-		PrintToChat(client, "[SM] The current leader is %N!", leaderClient);
+		CPrintToChat(client, "{green}[SM] {default}The current leader is {olive}%N {default}!", leaderClient);
 		return Plugin_Handled;
 	}
 	else
 	{
-		PrintToChat(client, "[SM] There is no current leader!");
+		CPrintToChat(client, "{green}[SM] {default}There is no current leader!");
 		return Plugin_Handled;
 	}
 }
@@ -604,13 +605,13 @@ public Action RemoveTheLeader(int client, int args)
 {
 	if(IsValidClient(leaderClient))
 	{
-		PrintToChatAll("[SM] The current leader has been removed!");
+		CPrintToChatAll("{green}[SM] {default}The current leader has been removed!");
 		RemoveLeader(leaderClient);
 		return Plugin_Handled;
 	}
 	else
 	{
-		PrintToChat(client, "[SM] There is no current leader!");
+		CPrintToChat(client, "{green}[SM] {default}There is no current leader!");
 		return Plugin_Handled;
 	}
 }
@@ -639,17 +640,18 @@ public Action Leader(int client, int args)
 			}
 			else
 			{
-				if(IsPlayerAlive(target))
+				if(IsPlayerAlive(target) && ZR_IsClientHuman(target) || ZR_IsClientZombie(client))
+				// Admin Target a player
 				{
 					SetLeader(target);
-					PrintToChatAll("[SM] %N is the new leader!", target);
-					PrintToChat(target, "[SM] You are now the leader! Type !leader to open up the leader menu.");
+					CPrintToChatAll("{green}[SM] {olive}%N {default}is the new leader !", target);
+					CPrintToChat(target, "{green}[SM] {default}Type {green}!leader {default}to open up the leader menu.");
 					LeaderMenu(target);
 					return Plugin_Handled;
 				}
 				else
 				{
-					ReplyToCommand(client, "[SM] The target has to be alive!");
+					CReplyToCommand(client, "{green}[SM] {default}The target has to be an alive Human !");
 					return Plugin_Handled;
 				}
 			}
@@ -661,30 +663,27 @@ public Action Leader(int client, int args)
 				LeaderMenu(client);
 				return Plugin_Handled;
 			}
-			if(IsPlayerAlive(client))
+			if(IsPlayerAlive(client) && ZR_IsClientHuman(client))
+			// Admin have access to sm_leader
 			{
 				SetLeader(client);
-				PrintToChatAll("[SM] %N is the new leader!", client);
-				PrintToChat(client, "[SM] You are now the leader! Type !leader to open up the leader menu.");
+				CPrintToChatAll("{green}[SM] {olive}%N {default}is the new leader !", client);
+				CPrintToChat(client, "{green}[SM] {default}Type {green}!leader {default}to open up the leader menu.");
 				LeaderMenu(client);
 				return Plugin_Handled;
 			}
 			else
 			{
-				ReplyToCommand(client, "[SM] The target has to be alive!");
+				CReplyToCommand(client, "{green}[SM] {default}You need to be an alive Human !");
 				return Plugin_Handled;
 			}
 		}
 		else
 		{
-			ReplyToCommand(client, "[SM] Usage: sm_leader <optional: client|#userid>");
+			CReplyToCommand(client, "[SM] Usage: sm_leader <optional: client|#userid>");
 			return Plugin_Handled;
 		}
 	}
-	else if(CheckCommandAccess(client, "sm_admin", ADMFLAG_GENERIC, false) && ZR_IsClientZombie(client))
-    {
-        PrintToChat(client, "[SM] This feature requires that you are a human.");
-    }
 
 	if (IsPossibleLeader(client))
 	{
@@ -693,17 +692,18 @@ public Action Leader(int client, int args)
 			LeaderMenu(client);
 			return Plugin_Handled;
 		}
-		if(IsPlayerAlive(client))
+		if(IsPlayerAlive(client) && ZR_IsClientHuman(client))
+		// Access via leader.ini
 		{
 			SetLeader(client);
-			PrintToChatAll("[SM] %N is the new leader!", client);
-			PrintToChat(client, "[SM] You are now the leader! Type !leader to open up the leader menu.");
+			CPrintToChatAll("{green}[SM] {olive}%N {default}is the new leader !", client);
+			CPrintToChat(client, "{green}[SM] {default}Type {green}!leader {default}to open up the leader menu.");
 			LeaderMenu(client);
 			return Plugin_Handled;
 		}
 		else
 		{
-			ReplyToCommand(client, "[SM] The target has to be alive!");
+			CReplyToCommand(client, "{green}[SM] {default}You need to be an alive Human !");
 			return Plugin_Handled;
 		}
 	}
@@ -712,6 +712,8 @@ public Action Leader(int client, int args)
 		LeaderMenu(client);
 		return Plugin_Handled;
 	}
+	//If dont have Admin access and isnt in leader.ini
+	CReplyToCommand(client, "{green}[SM] {default}You need to {red}request Leader access !");
 	return Plugin_Handled;
 }
 
@@ -735,10 +737,10 @@ public Action Leaders(int client, int args)
 	if(strlen(aBuf))
 	{
 		aBuf[strlen(aBuf) - 2] = 0;
-		ReplyToCommand(client, "[SM] Possible Leaders currently online: %s", aBuf);
+		CReplyToCommand(client, "{green}[SM] {default}Possible Leaders currently online : {olive}%s", aBuf);
 	}
 	else
-		ReplyToCommand(client, "[SM] Possible Leaders currently online: none");
+		CReplyToCommand(client, "{green}[SM] {default}Possible Leaders currently online : {olive}None");
 
 	return Plugin_Handled;
 }
@@ -749,7 +751,7 @@ public Action Leaders(int client, int args)
 public Action ReloadLeaders(int client, int args)
 {
 	UpdateLeaders();
-	ReplyToCommand(client, "[SM] Reloaded Leader File");
+	CReplyToCommand(client, "{green}[SM] {default}Reloaded Leader File");
 	return Plugin_Handled;
 }
 
@@ -962,7 +964,7 @@ public int LeaderMenu_Handler(Handle menu, MenuAction action, int client, int po
 			if(StrEqual(info, "resign"))
 			{
 				RemoveLeader(client);
-				PrintToChatAll("[SM] %N has resigned from being leader!", client);
+				CPrintToChatAll("{green}[SM] {default}%N {red}has resigned from being leader !", client);
 			}
 			if(StrEqual(info, "sprite"))
 			{
@@ -1071,7 +1073,7 @@ public int SpriteMenu_Handler(Handle menu, MenuAction action, int client, int po
 			if(StrEqual(info, "none"))
 			{
 				RemoveSprite(client);
-				PrintToChat(client, "[SM] Sprite removed.");
+				CPrintToChat(client, "{green}[SM] {default}Sprite removed.");
 				currentSprite = -1;
 				LeaderMenu(client);
 			}
@@ -1079,7 +1081,7 @@ public int SpriteMenu_Handler(Handle menu, MenuAction action, int client, int po
 			{
 				RemoveSprite(client);
 				spriteEntities[client] = AttachSprite(client, DefendVMT);
-				PrintToChat(client, "[SM] Sprite changed to 'Defend Here'.");
+				CPrintToChat(client, "{green}[SM] {olive}Sprite {default}changed to {green}Defend Here{default}.");
 				currentSprite = 0;
 				LeaderMenu(client);
 			}
@@ -1087,7 +1089,7 @@ public int SpriteMenu_Handler(Handle menu, MenuAction action, int client, int po
 			{
 				RemoveSprite(client);
 				spriteEntities[client] = AttachSprite(client, FollowVMT);
-				PrintToChat(client, "[SM] Sprite changed to 'Follow Me'.");
+				CPrintToChat(client, "{green}[SM] {olive}Sprite {default}changed to {green}Follow Me{default}.");
 				currentSprite = 1;
 				LeaderMenu(client);
 			}
@@ -1156,7 +1158,7 @@ public int MarkerMenu_Handler(Handle menu, MenuAction action, int client, int po
 			if(StrEqual(info, "removemarker"))
 			{
 				RemoveMarker(client);
-				PrintToChat(client, "[SM] Marker removed.");
+				CPrintToChat(client, "{green}[SM] {default}Marker removed.");
 				markerActive = false;
 				LeaderMenu(client);
 			}
@@ -1164,7 +1166,7 @@ public int MarkerMenu_Handler(Handle menu, MenuAction action, int client, int po
 			{
 				RemoveMarker(client);
 				markerEntities[client] = SpawnMarker(client, DefendVMT);
-				PrintToChat(client, "[SM] 'Defend Here' marker placed.");
+				CPrintToChat(client, "{green}[SM] {default}Marker {green}Defend Here {default}placed.");
 				markerActive = true;
 				LeaderMenu(client);
 			}
@@ -1187,7 +1189,7 @@ public void OnClientDisconnect(int client)
 {
 	if(client == leaderClient)
 	{
-		PrintToChatAll("[SM] The leader has disconnected!");
+		CPrintToChatAll("{green}[SM] {red}The leader has disconnected !");
 		RemoveLeader(client);
 	}
 	voteCount[client] = 0;
@@ -1202,7 +1204,7 @@ public Action Event_PlayerDeath(Handle event, char[] name, bool dontBroadcast)
 
 	if(client == leaderClient)
 	{
-		PrintToChatAll("[SM] The leader has died!");
+		CPrintToChatAll("{green}[SM] {red}The leader has died !");
 		RemoveLeader(client);
 	}
 }
@@ -1214,7 +1216,7 @@ public void ZR_OnClientInfected(int client, int attacker, bool motherInfect, boo
 {
 	if(client == leaderClient)
 	{
-		PrintToChatAll("[SM] The leader has been infected!");
+		CPrintToChatAll("{green}[SM] {red}The leader has been infected !");
 		RemoveLeader(client);
 	}
 }
@@ -1273,7 +1275,7 @@ public Action HookPlayerChat(int client, char[] command, int args)
 		}
 		if(IsClientInGame(client) && IsPlayerAlive(client))
 		{
-			PrintToChatAll("\x01[Leader] \x0C%N:\x02 %s", client, LeaderText);
+			CPrintToChatAll("{green}[Leader] {default}%N:{olive} %s", client, LeaderText);
 			return Plugin_Handled;
 		}
 	}
@@ -1364,11 +1366,11 @@ public Action Radio(int client, const char[] command, int argc)
 //----------------------------------------------------------------------------------------------------
 public void PrintRadio(int client, char[] text)
 {
-	char szClantag[32], szMessage[64];
+	char szClantag[32], szMessage[255];
 	CS_GetClientClanTag(client, szClantag, sizeof(szClantag));
 
-	Format(szMessage, sizeof(szMessage), "\x01 \x02%s %N (RADIO): %s", szClantag, client, text);
-	PrintToChatAll(szMessage);
+	Format(szMessage, sizeof(szMessage), "{green}[LEADER] {yellow}%s {teamcolor}%N {default}(RADIO): %s", szClantag, client, text);
+	CPrintToChatAll(szMessage);
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -1378,17 +1380,17 @@ public Action VoteLeader(int client, int argc)
 {
 	if(!allowVoting)
 	{
-		ReplyToCommand(client, "[SM] Voting for leader is disabled.");
+		CReplyToCommand(client, "{green}[SM] {default}Voting for leader is disabled.");
 		return Plugin_Handled;
 	}
 	if(IsValidClient(leaderClient))
 	{
-		ReplyToCommand(client, "[SM] There is already a leader!");
+		CReplyToCommand(client, "{green}[SM] {default}There is already a leader !");
 		return Plugin_Handled;
 	}
 	if(argc < 1)
 	{
-		ReplyToCommand(client, "[SM] Usage: sm_voteleader <player>");
+		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_voteleader <player>");
 		return Plugin_Handled;
 	}
 
@@ -1396,7 +1398,7 @@ public Action VoteLeader(int client, int argc)
 	
 	if(IsGagged > 0)
 	{
-		ReplyToCommand(client, "\x04[Leader] \x03You are not allowed to vote for leader since you are gagged.");
+		CReplyToCommand(client, "{green}[Leader] {default}You are not allowed to vote for leader since you are gagged.");
 		return Plugin_Handled;
 	}
 
@@ -1410,13 +1412,13 @@ public Action VoteLeader(int client, int argc)
 
 	if(GetClientFromSerial(votedFor[client]) == target)
 	{
-		ReplyToCommand(client, "[SM] You've already voted for this person!");
+		CReplyToCommand(client, "{green}[SM] {default}You've already voted for this person !");
 		return Plugin_Handled;
 	}
 
 	if(!IsPlayerAlive(target) || ZR_IsClientZombie(target))
 	{
-		ReplyToCommand(client, "[SM] You have to vote for an alive human!");
+		CReplyToCommand(client, "{green}[SM] {default}You have to vote for an alive Human !");
 		return Plugin_Handled;
 	}
 
@@ -1428,12 +1430,12 @@ public Action VoteLeader(int client, int argc)
 	}
 	voteCount[target]++;
 	votedFor[client] = GetClientSerial(target);
-	PrintToChatAll("[SM] %N has voted for %N to be the leader (%i/%i votes)", client, target, voteCount[target], GetClientCount(true)/10);
+	CPrintToChatAll("{green}[SM] {teamcolor}%N {default}has voted for {olive}%N {default}to be the leader (%i/%i votes)", client, target, voteCount[target], GetClientCount(true)/10);
 
 	if(voteCount[target] >= GetClientCount(true)/10)
 	{
 		SetLeader(target);
-		PrintToChatAll("[SM] %N has been voted to be the new leader!", target);
+		CPrintToChatAll("{green}[SM] {olive}%N {default}has been voted to be the new leader!", target);
 		LeaderMenu(target);
 	}
 
