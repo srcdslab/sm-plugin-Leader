@@ -990,7 +990,7 @@ public int LeaderMenu_Handler(Handle menu, MenuAction action, int client, int po
 			CloseHandle(menu);
 		}
 	}
-
+	return 0;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -1103,6 +1103,7 @@ public int SpriteMenu_Handler(Handle menu, MenuAction action, int client, int po
 			LeaderMenu(client);
 		}
 	}
+	return 0;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -1180,6 +1181,7 @@ public int MarkerMenu_Handler(Handle menu, MenuAction action, int client, int po
 			LeaderMenu(client);
 		}
 	}
+	return 0;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -1207,6 +1209,7 @@ public Action Event_PlayerDeath(Handle event, char[] name, bool dontBroadcast)
 		CPrintToChatAll("{green}[SM] {red}The leader has died !");
 		RemoveLeader(client);
 	}
+	return Plugin_Continue;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -1257,6 +1260,7 @@ public Action Event_RoundEnd(Handle event, char[] name, bool dontBroadcast)
 	}
 
 	KillAllBeacons();
+	return Plugin_Continue;
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -1309,6 +1313,7 @@ public int Native_CurrentLeader(Handle plugin, int numParams)
 public int Native_SetLeader(Handle plugin, int numParams)
 {
 	SetLeader(GetNativeCell(1));
+	return 0;
 }
 
 //----------------------------------------------------------------------------------------------------
